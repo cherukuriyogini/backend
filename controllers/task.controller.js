@@ -7,95 +7,64 @@ let cacheTime = null;
 // Create Task
 exports.createTask = async (req, res) => {
 
-    try {
+    const task = await Task.create(req.body);
 
-        const task = await Task.create(req.body);
+    // clear cache
+    cacheData = null;
 
-        cacheData = null;
-
-        res.json(task);
-
-    } catch (error) {
-
-        res.status(500).json({
-            error: error.message
-        });
-    }
+    res.json(task);
 };
 
 
-// Get Tasks
+// Get All Tasks with Cache
 exports.getTasks = async (req, res) => {
 
-    try {
+    const now = Date.now();
 
-        const now = Date.now();
+    // use cache if less than 60 sec old
+    if (
+        cacheData &&
+        now - cacheTime < 60000
+    ) {
 
-        if (
-            cacheData &&
-            now - cacheTime < 60000
-        ) {
-
-            return res.json(cacheData);
-        }
-
-        const tasks = await Task.find();
-
-        cacheData = tasks;
-        cacheTime = now;
-
-        res.json(tasks);
-
-    } catch (error) {
-
-        res.status(500).json({
-            error: error.message
-        });
+        return res.json(cacheData);
     }
+
+    const tasks = await Task.find();
+
+    // save cache
+    cacheData = tasks;
+    cacheTime = now;
+
+    res.json(tasks);
 };
 
 
 // Update Task
 exports.updateTask = async (req, res) => {
 
-    try {
+    const task = await Task.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        { new: true }
+    );
 
-        const task = await Task.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            { new: true }
-        );
+    // clear cache
+    cacheData = null;
 
-        cacheData = null;
-
-        res.json(task);
-
-    } catch (error) {
-
-        res.status(500).json({
-            error: error.message
-        });
-    }
+    res.json(task);
 };
 
 
 // Delete Task
 exports.deleteTask = async (req, res) => {
 
-    try {
+    await Task.findByIdAndDelete(req.params.id);
 
-        await Task.findByIdAndDelete(req.params.id);
+    // clear cache
+    cacheData = null;
 
-        cacheData = null;
-
-        res.json({
-            message: "Deleted"
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            error: error.message
-        });
-    }
+    res.json({
+        message: "Deleted"
+    });
 };
