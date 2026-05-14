@@ -7,64 +7,95 @@ let cacheTime = null;
 // Create Task
 exports.createTask = async (req, res) => {
 
-    const task = await Task.create(req.body);
+    try {
 
-    // clear cache
-    cacheData = null;
+        const task = await Task.create(req.body);
 
-    res.json(task);
+        cacheData = null;
+
+        res.json(task);
+
+    } catch (error) {
+
+        res.status(500).json({
+            error: error.message
+        });
+    }
 };
 
 
-// Get All Tasks with Cache
+// Get Tasks
 exports.getTasks = async (req, res) => {
 
-    const now = Date.now();
+    try {
 
-    // use cache if less than 60 sec old
-    if (
-        cacheData &&
-        now - cacheTime < 60000
-    ) {
+        const now = Date.now();
 
-        return res.json(cacheData);
+        if (
+            cacheData &&
+            now - cacheTime < 60000
+        ) {
+
+            return res.json(cacheData);
+        }
+
+        const tasks = await Task.find();
+
+        cacheData = tasks;
+        cacheTime = now;
+
+        res.json(tasks);
+
+    } catch (error) {
+
+        res.status(500).json({
+            error: error.message
+        });
     }
-
-    const tasks = await Task.find();
-
-    // save cache
-    cacheData = tasks;
-    cacheTime = now;
-
-    res.json(tasks);
 };
 
 
 // Update Task
 exports.updateTask = async (req, res) => {
 
-    const task = await Task.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        { new: true }
-    );
+    try {
 
-    // clear cache
-    cacheData = null;
+        const task = await Task.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true }
+        );
 
-    res.json(task);
+        cacheData = null;
+
+        res.json(task);
+
+    } catch (error) {
+
+        res.status(500).json({
+            error: error.message
+        });
+    }
 };
 
 
 // Delete Task
 exports.deleteTask = async (req, res) => {
 
-    await Task.findByIdAndDelete(req.params.id);
+    try {
 
-    // clear cache
-    cacheData = null;
+        await Task.findByIdAndDelete(req.params.id);
 
-    res.json({
-        message: "Deleted"
-    });
+        cacheData = null;
+
+        res.json({
+            message: "Deleted"
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            error: error.message
+        });
+    }
 };
