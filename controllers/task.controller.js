@@ -1,70 +1,34 @@
-const Task = require("../models/task.model");
+const Task=require("../models/task.model")
 
-let cacheData = null;
-let cacheTime = null;
+let cacheData=null;
+let cacheTime=null
 
+exports.createTask=async(req,res)=>{
+    const task=await Task.create(req.body)
+    cacheData=null;
+    res.json(task)
 
-// Create Task
-exports.createTask = async (req, res) => {
+}
 
-    const task = await Task.create(req.body);
+exports.updateTask=async(req,res)=>{
+    const task=await Task.findByIdAndUpdate(req.params.id,req.body,{new:true})
+    cacheData=null;
+    res.json(task)
+}
 
-    // clear cache
-    cacheData = null;
+exports.deleteTask=async(req,res)=>{
+    const task=await Task.findByIdAndDelete(req.params.id)
+    cacheData=null;
+    res.json({message:"deleted"})
+}
 
-    res.json(task);
-};
-
-
-// Get All Tasks with Cache
-exports.getTasks = async (req, res) => {
-
-    const now = Date.now();
-
-    // use cache if less than 60 sec old
-    if (
-        cacheData &&
-        now - cacheTime < 60000
-    ) {
-
-        return res.json(cacheData);
+exports.getTasks=async(req,res)=>{
+    const now=Date.now()
+    if(cacheData&&now - cacheTime < 60000){
+        return res.json(cacheData)
     }
-
-    const tasks = await Task.find();
-
-    // save cache
-    cacheData = tasks;
-    cacheTime = now;
-
-    res.json(tasks);
-};
-
-
-// Update Task
-exports.updateTask = async (req, res) => {
-
-    const task = await Task.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        { new: true }
-    );
-
-    // clear cache
-    cacheData = null;
-
-    res.json(task);
-};
-
-
-// Delete Task
-exports.deleteTask = async (req, res) => {
-
-    await Task.findByIdAndDelete(req.params.id);
-
-    // clear cache
-    cacheData = null;
-
-    res.json({
-        message: "Deleted"
-    });
-};
+    const tasks=await Task.find();
+        cacheData=tasks
+        cacheTime=now
+        res.json(tasks)
+}

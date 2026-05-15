@@ -6,7 +6,7 @@ const taskSchema=new mongoose.Schema({
         type:String,
         default:"pending"
     },
-    property:{
+    priority:{
         type:String,
         default:"medium"
     },
@@ -15,10 +15,9 @@ const taskSchema=new mongoose.Schema({
         ref:"User",
         index:true
     }
-});
+})
 taskSchema.index({
     status:1,
     priority:1
-});
-
-module.exports=mongoose.model("Task",taskSchema);
+})
+module.exports=mongoose.model("Task",taskSchema)
